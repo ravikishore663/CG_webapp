@@ -1,0 +1,44 @@
+# This is a sample build configuration for JavaScript.
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: node:14.18.3
+pipelines:
+  default:
+    - step:
+          caches:
+            - node
+          script: # Modify the commands below to build your repository.
+            - npm install
+    - step:
+        script:
+          - echo "Run only for not under develop prefix"
+          - echo $BITBUCKET_BRANCH
+  branches:
+    'develop':
+      - step:
+          caches:
+            - node
+          script: # Modify the commands below to build your repository.
+            - npm install
+            - echo '$BITBUCKET_BRANCH is triggered. Deploy it manually'
+      - step:
+          name: Deploy to develop
+          deployment: staging
+          trigger: manual  # Uncomment to make this a manual deployment.
+          script:
+            - echo "Deploying to develop environment"
+            - pipe: atlassian/ssh-run:0.2.2
+              variables:
+                SSH_USER: 'ec2-user'
+                SERVER: 'ec2-3-110-64-237.ap-south-1.compute.amazonaws.com'
+                COMMAND: 'bash deploy-dev.sh'
+    # 'feature/*':
+    #   - step:
+    #       caches:
+    #         - node
+    #       script: # Modify the commands below to build your repository.
+    #         - npm install
+    #         - npm run test
+    #         - echo '$BITBUCKET_BRANCH is triggered. Deploy it manually'
